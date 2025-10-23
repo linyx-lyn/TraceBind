@@ -3,7 +3,8 @@
 - [Overview](#overview)
 - [Installation](#installation)
 - [Tutorials](#tutorials)
-  
+- [Citation](#citation)
+
 <img src="https://github.com/lyx-lin/TraceBIND/blob/main/figures/tracebind_overview.png">
 
 ## Overview
@@ -35,3 +36,18 @@ Please refer to the following jupyter notebooks for tutorials:
  * [Footprint-informed chromVar analysis](https://github.com/lyx-lin/TraceBIND/blob/main/tutorials/tutorial_chromvar.ipynb)
 
 The data used could be found [here](https://www.dropbox.com/scl/fo/zhmxfp0gxnmlgeo8jsmbv/AO3I75Lz6eP3Illn-eb0Zgc?rlkey=zkfi6c7c29eb11tbmcz80n8sf&st=2cstifvu&dl=0).
+
+## Citation
+For more model details, validation results and real dataset analysis, please check out our manuscript on bioRXiv. If you use our method, please use the following citation:
+```
+@article {Lin2025.10.17.683160,
+	author = {Lin, Yuxuan and Wang, Hanzhi and Wilson, Parker C. and Zhang, Nancy R.},
+	title = {Robust footprinting with sample-specific Tn5 bias correction for bulk and single cell ATAC-seq},
+	elocation-id = {2025.10.17.683160},
+	year = {2025},
+	doi = {10.1101/2025.10.17.683160},
+	publisher = {Cold Spring Harbor Laboratory},
+	URL = {https://www.biorxiv.org/content/early/2025/10/18/2025.10.17.683160},
+	journal = {bioRxiv}
+}
+```

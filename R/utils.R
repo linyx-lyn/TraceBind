@@ -212,7 +212,7 @@ computeCountTensor <- function(frags,
       countTensorChunk <- foreach(regionInd = chunkRegions,
                                   .options.snow = opts,
                                   .packages = c("dplyr","Matrix")) %dopar%   {
-                                    regionCountTensor <- groupedCountTensor %>% dplyr::filter(region %in% regionInd)
+                                    regionCountTensor <- groupedCountTensor %>% filter(region %in% regionInd)
                                     return(regionCountTensor)
                                   }
       stopCluster(cl)
@@ -249,7 +249,7 @@ computeCountTensor <- function(frags,
 #' @import IRanges
 #' @import pbmcapply
 #' @import reticulate
-#' @importFrom Biostrings getSeq
+#' @importFrom BSgenome getSeq
 #' @importFrom doSNOW registerDoSNOW
 #' @return A bias tensor
 #' @export
@@ -385,6 +385,7 @@ get_bardata = function(counts,
 #' @param i ID of peak of interest in mito region, has to be the test region
 #' @param seeds random seed for set.seed()
 #' @param average_insertions average insertions of interest
+#' @param model downsampling model, binomial in default. If the desired coverage is greater then mito coverage, use poisson. 
 #' @param alpha fdr
 #' @param nCore Number of cores to use
 #' @import dplyr
@@ -396,6 +397,7 @@ mito_fdr = function(mito_counts,
                     i,
                     seeds,
                     average_insertions,
+                    model = 'binomial', 
                     alpha = 0.05,
                     nCore = 2){
   thresholds = lapply(seeds, function(k) {
@@ -405,6 +407,7 @@ mito_fdr = function(mito_counts,
                      mito_regions,
                      i,
                      average_insertions,
+                     model = model, 
                      nCore = nCore)
     }
   )
@@ -421,7 +424,7 @@ mito_fdr = function(mito_counts,
     dplyr::group_by(labels) %>%
     dplyr::summarise(
       count = n(),
-      threshold = quantile(p_value, alpha)
+      threshold = quantile(minus_log_p_value, alpha)
     )
   logp = na.omit(logp)
   logp$smoothed_threshold = logp$threshold
@@ -440,6 +443,7 @@ mito_fdr = function(mito_counts,
 #' @param mito_regions a data frame for mito regions, containing columns chr, start. end
 #' @param i ID of peak of interest in mito region, has to be the test region
 #' @param average_insertions average insertions of interest
+#' @param model downsampling model
 #' @param nCore fdr
 #' @return A data frame containing position, width, pvalue for non overlapping 'footprintings' (not necessarily significant)
 #'
@@ -448,6 +452,7 @@ mito_downsample = function(mito_counts,
                            mito_regions,
                            i,
                            average_insertion,
+                           model = 'binomial', 
                            nCore = 2){
   bardata = get_bardata(counts = mito_counts,
                         regionsBed = mito_regions,
@@ -455,8 +460,15 @@ mito_downsample = function(mito_counts,
                         i = i,
                         groupIDs = unique(mito_counts[[i]]$group))
   ratio = average_insertion/mean(bardata$Tn5Insertion)
-  bardata$downsampled_Tn5Insertion = apply(bardata['Tn5Insertion'], 1, function(x)
-    rbinom(n = 1, size = x, prob = ratio))
+  if (model == 'binomial'){
+    bardata$downsampled_Tn5Insertion = apply(bardata['Tn5Insertion'], 1, function(x)
+      rbinom(n = 1, size = x, prob = ratio))
+  } else if (model == 'poisson') {
+    bardata$downsampled_Tn5Insertion = apply(bardata['Tn5Insertion'], 1, function(x)
+      rpois(n = 1, x*ratio))
+  } else {
+    print('invalid downsampling model')
+  }
 
   footprinting_results = NB_footprintings(Tn5Insertion = bardata$downsampled_Tn5Insertion,
                                           pred_bias = bardata$pred_bias,
@@ -494,6 +506,7 @@ mito_downsample = function(mito_counts,
 #' @param mito_regions a data frame for mito regions, containing columns chr, start. end
 #' @param i ID of peak of interest in mito region, has to be the test region
 #' @param average_insertions average insertions of interest
+#' @param model downsampling model
 #' @param nCore fdr
 #' @return A data frame containing position, width, pvalue for non overlapping 'footprintings' (not necessarily significant)
 #'
@@ -502,6 +515,7 @@ mito_downsamples = function(mito_counts,
                             mito_regions,
                             i,
                             average_insertions,
+                            model = 'binomial', 
                             nCore = 2){
   binding_sites = lapply(average_insertions,
                          function(average_insertion){
@@ -510,6 +524,7 @@ mito_downsamples = function(mito_counts,
                                            mito_regions,
                                            i=i,
                                            average_insertion=average_insertion,
+                                           model = model, 
                                            nCore = nCore)
                          }
   )
@@ -549,7 +564,7 @@ getChunkInterval <- function(x,
 #' @importFrom doSNOW registerDoSNOW
 #' @importFrom parallel clusterEvalQ makeCluster
 #' @importFrom utils txtProgressBar setTxtProgressBar
-#' @return opts and cl for foreach                                        
+#' @return opts and cl for foreach
 #'
 prep_cluster <- function(len,
                          n_cores = 2
@@ -561,6 +576,6 @@ prep_cluster <- function(len,
   time_elapsed <- Sys.time()
   cl <- makeCluster(n_cores)
   clusterEvalQ(cl, .libPaths())
-  registerDoSNOW(cl)
+  doSNOW::registerDoSNOW(cl)
   list("opts" = opts, "cl" = cl)
 }

@@ -155,7 +155,7 @@ binding_sites_pval = function(p_value_matrix,
   # multiscale_data = multiscale_data[sample(1:dim(multiscale_data)[1],
   #                                          dim(multiscale_data)[1]), ]
   binding_sites = data.frame(matrix(ncol = 3, nrow = 0))
-  colnames(binding_sites) = c("width", "position", "-log_p_value")
+  colnames(binding_sites) = c("width", "position", "minus_log_p_value")
 
   ### searching for max -log10 pval and remove the regions that overlap with it
   ### search by forloop

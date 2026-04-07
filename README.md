@@ -4,6 +4,7 @@
 - [Installation](#installation)
 - [Tutorials](#tutorials)
 - [Citation](#citation)
+[![DOI](https://zenodo.org/badge/993986521.svg)](https://doi.org/10.5281/zenodo.19446219)
 
 <img src="https://github.com/lyx-lin/TraceBIND/blob/main/figures/tracebind_overview.png">
 

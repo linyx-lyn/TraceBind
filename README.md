@@ -27,7 +27,7 @@ pip install -r requirements.txt
 Then install this package:
 ```bash
 # install.packages("devtools")
-devtools::install_github("lyx-lin/TraceBIND", dependencies=TRUE)
+devtools::install_github("linyx-lyn/TraceBind", dependencies=TRUE)
 ```
 
 ## Tutorials 
